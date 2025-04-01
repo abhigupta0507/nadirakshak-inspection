@@ -14,7 +14,9 @@ import ForgotPassword from "./pages/ForgotPassword";
 import VerifyResetOTP from "./pages/VerifyResetOTP";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
-import ProtectedRoute from "./components/ProtectedRoute";
+import AdminDashboard from "./pages/AdminDashboard";
+import ProtectedRoute from "./components/RoleProtectedRoute";
+import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import Navbar from "./components/Navbar";
 import "./App.css";
 
@@ -41,6 +43,15 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/admin"
+                element={
+                  <RoleProtectedRoute allowedRoles={["Admin"]}>
+                    <AdminDashboard />
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/login" />} />
             </Routes>
           </div>
         </div>
