@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { getUserProfile } from "../api/auth";
 
 const Dashboard = () => {
-  const { currentUser } = useAuth();
-  const [userProfile, setUserProfile] = useState(null);
+  const { currentUser, userProfile, refreshUserProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const loadProfile = async () => {
+      setLoading(true);
       try {
-        const response = await getUserProfile();
-        setUserProfile(response.data);
-        console.log(response.data);
+        await refreshUserProfile();
+        setError("");
       } catch (err) {
         setError("Failed to load user profile. Please try again later.");
         console.error("Error fetching user profile:", err);
@@ -22,8 +20,8 @@ const Dashboard = () => {
       }
     };
 
-    fetchUserProfile();
-  }, []);
+    loadProfile();
+  }, [refreshUserProfile]);
 
   if (loading) {
     return (
@@ -40,6 +38,12 @@ const Dashboard = () => {
     return (
       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
         {error}
+        <button
+          onClick={() => refreshUserProfile()}
+          className="ml-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -51,7 +55,7 @@ const Dashboard = () => {
 
         <div className="mb-6">
           <h3 className="text-xl font-semibold mb-4">
-            Welcome, {currentUser?.name || "Inspector"}
+            Welcome, {currentUser?.name || userProfile?.name || "Inspector"}
           </h3>
           <p className="text-gray-600 mb-2">
             You are logged in as an Inspection user. Here you can manage and

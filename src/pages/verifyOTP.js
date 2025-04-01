@@ -7,6 +7,7 @@ const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -35,7 +36,13 @@ const VerifyOTP = () => {
     try {
       const response = await verifyOTP(email, otp);
       login(response.data);
-      navigate("/dashboard");
+
+      setSuccess(true);
+
+      // Add a short delay before navigating to ensure the state is updated
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -62,6 +69,12 @@ const VerifyOTP = () => {
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            OTP verified successfully! Redirecting to dashboard...
           </div>
         )}
 
@@ -92,7 +105,7 @@ const VerifyOTP = () => {
           <div className="flex items-center justify-between">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || success}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
             >
               {loading ? "Verifying..." : "Verify OTP"}

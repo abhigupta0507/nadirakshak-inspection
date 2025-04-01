@@ -1,4 +1,4 @@
-// auth.js - Add token refresh functionality
+// auth.js with improved token handling
 import axios from "axios";
 
 const API_URL = "https://nadirakshak-backend.onrender.com/api/v1/auth";
@@ -8,6 +8,20 @@ const authAxios = axios.create({
   baseURL: API_URL,
 });
 
+// Add request interceptor to include auth token in every request
+authAxios.interceptors.request.use(
+  (config) => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.accessToken) {
+      config.headers["Authorization"] = `Bearer ${user.accessToken}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Add token refresh interceptor
 authAxios.interceptors.response.use(
   (response) => response,
@@ -15,7 +29,7 @@ authAxios.interceptors.response.use(
     const originalRequest = error.config;
 
     // If error is 401 and not already retrying
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
@@ -39,7 +53,7 @@ authAxios.interceptors.response.use(
         originalRequest.headers[
           "Authorization"
         ] = `Bearer ${response.data.accessToken}`;
-        return axios(originalRequest);
+        return authAxios(originalRequest);
       } catch (refreshError) {
         // If refresh failed, log out user
         localStorage.removeItem("user");
@@ -51,9 +65,6 @@ authAxios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-// Rest of your auth.js code...
-
 
 // Register new user with inspection role
 export const registerUser = async (userData) => {
@@ -91,14 +102,13 @@ export const resetPassword = async (verificationToken, newPassword) => {
 
 // Get user profile
 export const getUserProfile = async () => {
-  return await authAxios.get(`${API_URL}/profile`);
+  return await authAxios.get(`/profile`);
 };
 
 // Update user profile
 export const updateUserProfile = async (profileData) => {
-  return await authAxios.patch(`${API_URL}/profile`, profileData);
+  return await authAxios.patch(`/profile`, profileData);
 };
-
 
 // Add function to check user role
 export const checkUserRole = (requiredRole) => {
